@@ -15,7 +15,6 @@
   environment.systemPackages = with pkgs; [
     pkgs.firefoxWrapper
     thunderbird
-    networkmanagerapplet
     virtmanager
 
     spotify
@@ -42,6 +41,8 @@
 
     # gnome utilities
     gnome3.gnome-disk-utility
+    gnome3.networkmanagerapplet
+    gnome3.networkmanager_openvpn
 
     # misc
     curl
@@ -65,6 +66,14 @@
     gcc
     python27
   ];
+
+  services.mopidy = {
+      enable = false;
+      extensionPackages = [
+          pkgs.mopidy-spotify
+          pkgs.mopidy-mopify
+      ];
+  };
 
   services.printing.enable = false;
 
