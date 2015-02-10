@@ -67,14 +67,6 @@
     python27
   ];
 
-  services.mopidy = {
-      enable = false;
-      extensionPackages = [
-          pkgs.mopidy-spotify
-          pkgs.mopidy-mopify
-      ];
-  };
-
   services.printing.enable = false;
 
   services.xserver = {
@@ -108,6 +100,26 @@
     bijiben
     evolution
   ];
+
+  services.mopidy = {
+      enable = false;
+      extensionPackages = [
+          pkgs.mopidy-spotify
+          pkgs.mopidy-mopify
+      ];
+  };
+
+  services.openssh = {
+      enable = true;
+      ports = [ 2538 ];
+      listenAddresses = [ { addr = "0.0.0.0"; port = 2538; } ];
+      permitRootLogin = "no";
+      forwardX11 = true;
+  };
+
+  services.haveged = {
+      enable = true;
+  };
 
   virtualisation.libvirtd = {
     enable = true;
