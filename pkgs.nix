@@ -1,15 +1,20 @@
-{ config, pkgs, ... }:
+
+{ config, pkgs ? import <nixpkgs> {}, ... }:
 
 {
 
   nixpkgs.config = {
     allowUnfree = true;
+    withGnome = true;
 
     firefox = {
       enableGoogleTalkPlugin = false;
       enableAdobeFlash = true;
+      jre = false;
     };
+
   };
+
 
   # $ nix-env -qaP | grep wget
   environment.systemPackages = with pkgs; [
@@ -18,9 +23,9 @@
     virtmanager
 
     spotify
-    mopidy
-    mopidy-mopify
-    mopidy-spotify
+    #mopidy
+    #mopidy-mopify
+    #mopidy-spotify
     ncmpcpp
 
     mpv
@@ -41,8 +46,6 @@
 
     # gnome utilities
     gnome3.gnome-disk-utility
-    gnome3.networkmanagerapplet
-    gnome3.networkmanager_openvpn
 
     # misc
     curl
@@ -59,11 +62,6 @@
     xz
     lzop
 
-    binutils
-    gnumake
-    prelink
-    ncurses
-    gcc
     python27
   ];
 
@@ -100,6 +98,14 @@
     bijiben
     evolution
   ];
+
+  services.gnome3 = {
+      gvfs.enable = true;
+      seahorse.enable = true;
+      tracker.enable = true;
+      gnome-keyring.enable = true;
+      sushi.enable = true;
+  };
 
   services.mopidy = {
       enable = false;
