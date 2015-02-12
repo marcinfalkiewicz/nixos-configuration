@@ -118,6 +118,11 @@
 
   nix.extraOptions = ''
     build-cores = 8
+
+    gc-keep-outputs = true
+    gc-keep-derivations = true
+
+    auto-optimise-store = true
   '';
 
 }
