@@ -1,5 +1,5 @@
 
-{ config, pkgs ? import <nixpkgs> {}, ... }:
+{ config, pkgs, ... }:
 
 {
 
@@ -47,9 +47,14 @@
     # gnome utilities
     gnome3.gnome-disk-utility
 
+    smartmontools
+    gptfdisk
+    iotop
+    iftop
+    htop
+
     # misc
     curl
-    htop
     tmux
     vim
     git
