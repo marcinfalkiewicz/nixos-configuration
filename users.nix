@@ -16,13 +16,13 @@
     ];
   };
 
-  users.extraUsers.libvirt = {
-    isNormalUser = false;
-    isSystemUser = true;
-    home = "/var/lib/libvirt";
-    shell = "/run/current-system/sw/bin/nologin";
-    extraGroups = [ "libvirtd" "hugepages" ];
-  };
+  #users.extraUsers.libvirt = {
+  #  isNormalUser = false;
+  #  isSystemUser = true;
+  #  home = "/var/lib/libvirt";
+  #  shell = "/run/current-system/sw/bin/nologin";
+  #  extraGroups = [ "libvirtd" "hugepages" ];
+  #};
 
   users.extraGroups.hugepages = {
       gid = 8;
