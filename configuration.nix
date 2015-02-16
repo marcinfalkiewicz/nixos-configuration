@@ -117,7 +117,7 @@
   time.timeZone = "Europe/Warsaw";
 
   nix.extraOptions = ''
-    build-cores = 8
+    build-cores = 1
 
     gc-keep-outputs = true
     gc-keep-derivations = true
