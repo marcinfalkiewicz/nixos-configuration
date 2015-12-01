@@ -53,6 +53,8 @@
     iftop
     htop
 
+    pciutils
+
     # misc
     curl
     tmux
@@ -78,6 +80,9 @@
     layout = "pl";
     xkbOptions = "eurosign:e";
 
+
+    driSupport32Bit = true;
+
     videoDriver = "intel";
     vaapiDrivers = [ pkgs.vaapiIntel ];
     deviceSection = ''
@@ -89,7 +94,7 @@
   services.xserver.desktopManager.gnome3.enable = true;
   services.xserver.desktopManager.gnome3.sessionPath = [];
 
-  environment.gnome3.packageSet = pkgs.gnome3_12;
+  environment.gnome3.packageSet = pkgs.gnome3_18;
   environment.gnome3.excludePackages = with pkgs.gnome3; [
     gnome-photos
     gnome-clocks
