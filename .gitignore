@@ -1,0 +1,5 @@
+kernel/
+luks/
+nixpkgs/
+hardware-configuration.nix
+luks.nix

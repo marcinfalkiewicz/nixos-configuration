@@ -5,7 +5,7 @@
   users.extraUsers.dweller = {
     isNormalUser = true;
     description = "Marcin Falkiewicz";
-    uid = 1000;
+    uid = 1100;
     home = "/var/home/dweller";
     shell = "/run/current-system/sw/bin/bash";
     createHome = true;
