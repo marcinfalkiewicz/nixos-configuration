@@ -45,7 +45,10 @@
             "vfio_pci"
             "vfio_iommu_type1"
             "vhost" "vhost_net" "vhost_scsi"
-            "zram" ];
+            "zram"
+            "coretemp"
+            "w83627ehf"
+            ];
 
         kernelParams = [ #"video=efifb"
             "iommu=pt"
