@@ -47,12 +47,13 @@
             "vhost" "vhost_net" "vhost_scsi"
             "zram"
             "coretemp"
-            "w83627ehf"
+            "nct6775"
             ];
 
         kernelParams = [ #"video=efifb"
             "iommu=pt"
             "intel_iommu=on,igfx_off"
+            "i915.modeset=1"
             "vfio_pci.ids=1002:6818,1002:aab0"
             "vfio_pci.disable_vga=1"
             "libahci.ignore_sss=1"

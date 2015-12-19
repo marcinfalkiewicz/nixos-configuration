@@ -4,6 +4,11 @@
 
 {
 
+    environment.etc."sensors.conf" = {
+        source = "/etc/nixos/kernel/sensors";
+        enable = true;
+    };
+
     nixpkgs.config = {
         allowUnfree = true;
         withGnome = false;
@@ -52,10 +57,10 @@
 
     #kernelPackages = pkgs.linuxPackages_4_1;
     boot.kernelPackages = pkgs.linuxPackages_custom {
-        version = "4.1.12";
+        version = "4.1.15";
         src = pkgs.fetchurl {
-            url = "mirror://kernel/linux/kernel/v4.x/linux-4.1.12.tar.xz";
-            sha256 = "0q9zw731mn043fksl0cmbg8dr16f065378ys5x1h955rn93b4jab";
+            url = "mirror://kernel/linux/kernel/v4.x/linux-4.1.15.tar.xz";
+            sha256 = "18sr0dl5ax6pcx6nqp9drb4l6a38g07vxihiqpbwb231jv68h8j7";
         };
         configfile = /etc/nixos/kernel/config;
     };
@@ -141,6 +146,7 @@
 
     services.xserver.desktopManager.gnome3.enable = false;
     services.xserver.desktopManager.gnome3.sessionPath = [];
+
     #services.gnome3 = {
     #    gvfs.enable = true;
     #    seahorse.enable = true;
