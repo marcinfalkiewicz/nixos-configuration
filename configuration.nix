@@ -114,7 +114,7 @@
 
         initrd.checkJournalingFS = true;
         initrd.kernelModules = [ "fbcon" "i915" "loop" "vfio-pci"];
-        initrd.availableKernelModules = [ "ehci_pci" "ahci" "usbhid" "usb_storage"];
+        initrd.availableKernelModules = [ "ehci_pci" "ahci" "usbhid" "usb_storage" "dm_thin_pool" ];
         initrd.supportedFilesystems = [ "zfs" "ext4" ];
         supportedFilesystems = [ "zfs" "ext4" ];
         zfs.extraPools = [ "zstorage" ];
@@ -260,6 +260,8 @@
 
     nix.extraOptions = ''
         build-cores = 0
+
+        binary-caches-parallel-connections = 4
 
         gc-keep-outputs = true
         gc-keep-derivations = true

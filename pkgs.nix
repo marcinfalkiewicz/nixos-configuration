@@ -9,6 +9,10 @@
         enable = true;
     };
 
+    environment.shellAliases = {
+        sensors = "${pkgs.lm_sensors}/bin/sensors -c /etc/sensors.conf";
+    };
+
     nixpkgs.config = {
         allowUnfree = true;
         withGnome = false;
@@ -31,23 +35,18 @@
                 ];
 
                 extraConfig = "
-                #    PREEMPT_RCU y
                     MNATIVE y
 
                 #    PREEMPT y
+                #    PREEMPT_RCU y
                 #    SCHED_AUTOGROUP y
 
                 #    ZRAM_LZ4_COMPRESS y
 
                     IOSCHED_BFQ y
-                #    CGROUP_BFQIO y
                     DEFAULT_BFQ y
 
                 #    VFIO_PCI_VGA y
-
-                #    USB_CONFIGFS n
-                #    USB_GADGETFS n
-                #    USB_FUNCTIONFS n
 
                 ";
             };
@@ -84,6 +83,7 @@
             gst_plugins_ugly
 
             openvpn
+            gnupg
             x11vnc
 
             gtk_engines
@@ -93,6 +93,7 @@
             smartmontools
             gptfdisk
             multipath_tools
+            thin-provisioning-tools
             hdparm
             iotop
             iftop
