@@ -11,6 +11,7 @@
 
     environment.shellAliases = {
         sensors = "${pkgs.lm_sensors}/bin/sensors -c /etc/sensors.conf";
+        clearcache = "sync && echo 3 | sudo tee /proc/sys/vm/drop_caches && sync";
     };
 
     nixpkgs.config = {
@@ -21,6 +22,14 @@
             enableGoogleTalkPlugin = false;
             enableAdobeFlash = true;
             jre = false;
+        };
+
+        mpv = {
+            vaapiSupport = true;
+            bluraySupport = false;
+            dvdnavSupport = false;
+            dvdreadSupport = false;
+            vdpauSupport = false;
         };
 
         packageOverrides = pkgs: {
@@ -99,6 +108,7 @@
             iftop
             htop
             ntfs3g
+            nix-prefetch-scripts
 
             pciutils
             usbutils
