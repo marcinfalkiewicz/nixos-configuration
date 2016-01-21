@@ -13,6 +13,7 @@
             ./users.nix
             ./pkgs.nix
             ./programs.nix
+            ./services/misc.nix
             ./services/libvirt.nix
             ./services/mopidy.nix
             ./services/smb.nix
@@ -61,6 +62,9 @@
             #"libata.force=1.00:noncq"             # NCQ on Samsung is broken (suprise!)
             "hugepagesz=1GB"
             "hugepages=8"
+            "isolcpus=4,5,6,7"
+            "nohz_full=4,5,6,7"
+            "rcu_nocbs=4,5,6,7"
         ];
 
         extraModprobeConfig = ''
@@ -171,6 +175,17 @@
         }
     ];
 
+    systemd.services.sensors = {
+        description = "Set min/max valuse for sensors";
+        path = [ pkgs.lm_sensors ];
+        enable = true;
+        serviceConfig = {
+            Type = "oneshot";
+            ExecStart = "${pkgs.lm_sensors}/bin/sensors -s";
+        };
+        wantedBy = ["multi-user.target"];
+    };
+
     # do fstrim every week, instead of discard-on-delete
     systemd.services.fstrim = {
         description = "Discard unused blocks";
@@ -208,9 +223,10 @@
         ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", RUN+="${pkgs.hdparm}/bin/hdparm -S 180 /dev/%k"
 
         # default schedulers
-        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="deadline"
-        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/iosched/fifo_batch}="16"
-        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/iosched/writes_starved}="8"
+        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="bfq"
+        #ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="deadline"
+        #ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/iosched/fifo_batch}="32"
+        #ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/iosched/writes_starved}="8"
         ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"
 
         # fancy swap-on-zram rule
@@ -261,6 +277,7 @@
     nix.extraOptions = ''
         build-cores = 0
 
+        binary-caches = https://cache.nixos.org/ https://hydra.nixos.org
         binary-caches-parallel-connections = 4
 
         gc-keep-outputs = true
