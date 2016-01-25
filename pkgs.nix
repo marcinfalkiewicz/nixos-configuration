@@ -44,8 +44,8 @@
                       name = "03-block-bfq"; }
                     { patch = /etc/nixos/kernel/patches/0004-enable_additional_cpu_optimizations.patch;
                       name = "04-cpu-optimizations"; }
-                    { patch = /etc/nixos/kernel/patches/0005-Revert-x86-efi-Fix-multiple-GOP-device-support.patch;
-                      name = "05-revert-multiple-efi-gop-support"; }
+                    #{ patch = /etc/nixos/kernel/patches/0005-Revert-x86-efi-Fix-multiple-GOP-device-support.patch;
+                    #  name = "05-revert-multiple-efi-gop-support"; }
                     ];
                 };
             };
@@ -55,10 +55,11 @@
 
     #kernelPackages = pkgs.linuxPackages_4_1;
     boot.kernelPackages = pkgs.linuxPackages_custom {
-        version = "4.1.15";
+        version = "4.1.16";
         src = pkgs.fetchurl {
-            url = "mirror://kernel/linux/kernel/v4.x/linux-4.1.15.tar.xz";
-            sha256 = "18sr0dl5ax6pcx6nqp9drb4l6a38g07vxihiqpbwb231jv68h8j7";
+            url = "mirror://kernel/linux/kernel/v4.x/linux-4.1.16.tar.xz";
+            sha256 = "0vmjksmga0fkga2fmq2c6pawjjl5b56v9bwn92g6p7pbrq6074l7";
+            #sha256 = "18sr0dl5ax6pcx6nqp9drb4l6a38g07vxihiqpbwb231jv68h8j7";   # linux 4.1.15
         };
         configfile = /etc/nixos/kernel/config;
     };
@@ -90,6 +91,7 @@
 
             lm_sensors
             smartmontools
+            efibootmgr
             gptfdisk
             multipath_tools
             thin-provisioning-tools
