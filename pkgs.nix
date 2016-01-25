@@ -33,31 +33,21 @@
         };
 
         packageOverrides = pkgs: {
-            linux_custom = pkgs.linux_custom.override {
-                kernelPatches = [
-                { patch = "./kernel/patches/0001-block-cgroups-kconfig-build-bits-for-BFQ-v7r8-4.1.patch"; name = "01-block-bfq"; }
-                { patch = "./kernel/patches/0002-block-introduce-the-BFQ-v7r8-I-O-sched-for-4.1.patch"; name = "02-block-bfq"; }
-                { patch = "./kernel/patches/0003-block-bfq-add-Early-Queue-Merge-EQM-to-BFQ-v7r8-for-4.1.0.patch"; name = "03-block-bfq"; }
-                { patch = "./kernel/patches/0004-enable_additional_cpu_optimizations.patch"; name = "04-cpu-optimizations"; }
-                { patch = "./kernel/patches/0005-Revert-x86-efi-Fix-multiple-GOP-device-support.patch"; name = "05-revert-multiple-efi-gop-support"; }
-                { patch = "./kernel/patches/0006-Revert-iommu-vt-d-fix-range-computation-when-making-.patch"; name = "06-revert-iommu-fix-range-computation"; }
-                ];
-
-                extraConfig = "
-                    MNATIVE y
-
-                #    PREEMPT y
-                #    PREEMPT_RCU y
-                #    SCHED_AUTOGROUP y
-
-                #    ZRAM_LZ4_COMPRESS y
-
-                    IOSCHED_BFQ y
-                    DEFAULT_BFQ y
-
-                #    VFIO_PCI_VGA y
-
-                ";
+            stdenv = pkgs.stdenv // {
+                platform = pkgs.stdenv.platform // {
+                    kernelPatches = [
+                    { patch = /etc/nixos/kernel/patches/0001-block-cgroups-kconfig-build-bits-for-BFQ-v7r8-4.1.patch;
+                      name = "01-block-bfq"; }
+                    { patch = /etc/nixos/kernel/patches/0002-block-introduce-the-BFQ-v7r8-I-O-sched-for-4.1.patch;
+                      name = "02-block-bfq"; }
+                    { patch = /etc/nixos/kernel/patches/0003-block-bfq-add-Early-Queue-Merge-EQM-to-BFQ-v7r8-for-4.1.0.patch;
+                      name = "03-block-bfq"; }
+                    { patch = /etc/nixos/kernel/patches/0004-enable_additional_cpu_optimizations.patch;
+                      name = "04-cpu-optimizations"; }
+                    { patch = /etc/nixos/kernel/patches/0005-Revert-x86-efi-Fix-multiple-GOP-device-support.patch;
+                      name = "05-revert-multiple-efi-gop-support"; }
+                    ];
+                };
             };
         };
 
