@@ -214,6 +214,11 @@
         SystemMaxFileSize=8M
     '';
 
+    environment.etc."tmpfiles.d/intel_pstate.conf".text = ''
+      w /sys/devices/system/cpu/intel_pstate/min_perf_pct - - - - 26
+      w /sys/devices/system/cpu/intel_pstate/max_perf_pct - - - - 100
+    '';
+
     swapDevices = [ ];
 
     hardware.cpu.intel.updateMicrocode = true;
@@ -275,7 +280,7 @@
     time.timeZone = "Europe/Warsaw";
 
     nix.extraOptions = ''
-        build-cores = 0
+        build-cores = 5
 
         binary-caches = https://cache.nixos.org/ https://hydra.nixos.org
         binary-caches-parallel-connections = 4
