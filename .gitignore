@@ -1,4 +1,4 @@
-kernel/
+kernel/patches
 luks/
 nixpkgs/
 hardware-configuration.nix

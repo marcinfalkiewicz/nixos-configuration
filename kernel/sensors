@@ -1,0 +1,96 @@
+
+chip "radeon-pci-*"
+    label temp1 "GPU 0"
+
+#
+# ASRock Z87E-ITX sensors
+#
+
+chip "nct6776-isa-0290"
+
+### FANS
+    label fan1 "Chassis Fan"
+    set fan1_min 600
+    label fan2 "CPU Fan"
+    set fan2_min 600
+
+    # no fan connectors for these
+    ignore fan3
+    ignore fan4
+    ignore fan5
+
+### VOLTAGES
+
+    label in0 "CPU Core Voltage" # Vcore
+    #compute in0 @ * (300/215), @ / (300/215)
+    #compute in0 -@ + 2, -@ + 2
+    set in0_min 0.6
+    set in0_max 1.3
+
+    label in1 "CPU Input Voltage"
+    compute in1 @ * (120/12), @ / (120/12)
+    set in1_min  1.6 * 0.95
+    set in1_max  1.75 * 1.05
+
+    label in2 "AVCC"
+    set in2_min  3.3 * 0.95
+    set in2_max  3.3 * 1.05
+
+    label in3 "+3.3V"
+    set in3_min  3.3 * 0.95
+    set in3_max  3.3 * 1.05
+
+    label in4 "+5V"
+    compute in4 @ * 10, @ / 10
+    set in4_min  5.0 * 0.95
+    set in4_max  5.0 * 1.05
+
+    label in5 "+12V"
+    compute in5 @ * (79/12), @ / (79/12) # 53/8
+    set in5_min  12.0 * 0.95
+    set in5_max  12.0 * 1.05
+
+    # no idea what this corresponds to (maybe -12V)
+    ignore in6
+
+    label in7 "3VSB"
+    set in7_min  3.3 * 0.90
+    set in7_max  3.3 * 1.10
+
+    label in8 "CMOS Battery"
+    set in8_min  3.0 * 0.90
+    set in8_max  3.3 * 1.10
+
+### SENSORS
+
+    # SYSTIN
+    label temp1 "System Sensor"
+
+    # CPUTIN (internal CPU temp; broken?)
+    ignore temp2
+
+    # AUXTIN (broken)
+    ignore temp3
+
+    # PECI Agent 0 (CPU Temp)
+    label temp7 "PECI CPU"
+    #ignore temp7
+
+    # PCH_*_TEMP
+    ignore temp8
+    ignore temp9
+    ignore temp10
+
+    # i like cookies
+    ignore intrusion0
+    ignore intrusion1
+
+    # whats the point
+    ignore beep_enable
+
+    #input voly
+    # 1.744
+
+    # 12.249 12.196 12.302 12.249
+    # 5.064 5.064 5.016 5.136
+
