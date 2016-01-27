@@ -33,10 +33,15 @@
 
         kernel.sysctl = {
             # vm memory assignment
-            "vm.nr_overcommit_hugepages" = 2050;
-            "vm.hugetlb_shm_group" = 8;
+            #"vm.nr_overcommit_hugepages" = 2050;
+            #"vm.hugetlb_shm_group" = 8;
 
             "kernel.dmesg_restrict" = 1;
+            #"kernel.kptr_restrict" = 1;
+            "kernel.nmi_watchdog" = 0;
+
+            "vm.dirty_background_bytes" = 16777216;
+            "vm.dirty_bytes" = 50331648;
         };
 
         tmpOnTmpfs = true;
@@ -113,7 +118,7 @@
             options zfs                 zfs_resilver_delay=0
             options zfs                 zfs_scan_idle=10
             options zfs                 zfs_scan_min_time_ms=5000
-            '';
+        '';
 
 
         initrd.checkJournalingFS = true;
@@ -215,8 +220,13 @@
     '';
 
     environment.etc."tmpfiles.d/intel_pstate.conf".text = ''
-      w /sys/devices/system/cpu/intel_pstate/min_perf_pct - - - - 26
-      w /sys/devices/system/cpu/intel_pstate/max_perf_pct - - - - 100
+      w /sys/devices/system/cpu/intel_pstate/min_perf_pct   - - - - 26
+      w /sys/devices/system/cpu/intel_pstate/max_perf_pct   - - - - 100
+
+      w /sys/kernel/mm/transparent_hugepage/enabled         - - - - madvise
+      w /sys/kernel/mm/transparent_hugepage/defrag          - - - - always
+      w /sys/kernel/mm/transparent_hugepage/khugepaged/scan_sleep_millisecs - - - - 5000
+      w /sys/kernel/mm/transparent_hugepage/khugepaged/defrag   - - - - 1
     '';
 
     swapDevices = [ ];
