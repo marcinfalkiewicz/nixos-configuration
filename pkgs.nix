@@ -120,6 +120,7 @@
             lzop
 
             python27
+            libxml2 # for xmllint
 
             haskellPackages.xmobar
 
