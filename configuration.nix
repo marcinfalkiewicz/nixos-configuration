@@ -40,6 +40,9 @@
             #"kernel.kptr_restrict" = 1;
             "kernel.nmi_watchdog" = 0;
 
+            "kernel.sched_rt_period_us" = 1000000;
+            "kernel.sched_rt_runtime_us" = 900000;
+
             "vm.dirty_background_bytes" = 16777216;
             "vm.dirty_bytes" = 50331648;
         };
@@ -67,6 +70,8 @@
             #"libata.force=1.00:noncq"             # NCQ on Samsung is broken (suprise!)
             "hugepagesz=1GB"
             "hugepages=8"
+            #"hugepagesz=2MB"
+            #"hugepages=1024"
             "isolcpus=4,5,6,7"
             "nohz_full=4,5,6,7"
             "rcu_nocbs=4,5,6,7"
@@ -74,7 +79,7 @@
 
         extraModprobeConfig = ''
             options loop                max_loop=16
-            options zram                num_devices=8
+            options zram                num_devices=4
 
             options kvm                 ignore_msrs=1
             options kvm_intel           enable_apicv=1
@@ -147,6 +152,17 @@
         "/boot" = {
             options = "noatime,noauto,x-systemd.automount";
         };
+        "/proc" = {
+            device = "proc";
+            fsType = "proc";
+            options = "hidepid=2";
+        };
+        "/sys/firmware/efi/efivars" = {
+            device = "efivarfs";
+            fsType = "efivarsfs";
+            options = "ro,nosuid,nodev,noexec,noatime";
+        };
+
     };
 
     systemd.mounts = [
@@ -169,36 +185,28 @@
             options = "pagesize=1G";
             requiredBy  = ["basic.target"];
         }
-        { where = "/proc";
-            enable = true;
-            what = "proc";
-            type = "proc";
-            options = "hidepid=2";
-            unitConfig = {
-                DefaultDependencies = "no";
-            };
-        }
     ];
 
-    systemd.services.sensors = {
-        description = "Set min/max valuse for sensors";
-        path = [ pkgs.lm_sensors ];
-        enable = true;
-        serviceConfig = {
-            Type = "oneshot";
-            ExecStart = "${pkgs.lm_sensors}/bin/sensors -s";
+    systemd.services = {
+        sensors = {
+            description = "Set min/max valuse for sensors";
+            path = [ pkgs.lm_sensors ];
+            enable = true;
+            serviceConfig = {
+                Type = "oneshot";
+                ExecStart = "${pkgs.lm_sensors}/bin/sensors -s";
+            };
+            wantedBy = ["multi-user.target"];
         };
-        wantedBy = ["multi-user.target"];
-    };
 
-    # do fstrim every week, instead of discard-on-delete
-    systemd.services.fstrim = {
-        description = "Discard unused blocks";
-        path = [ pkgs.utillinux ];
-        #enable = false; # user timer for this instead
-        serviceConfig = {
-            Type = "oneshot";
-            ExecStart = "${pkgs.utillinux}/bin/fstrim -av";
+        # do fstrim every week, instead of discard-on-delete
+        fstrim = {
+            description = "Discard unused blocks";
+            path = [ pkgs.utillinux ];
+            serviceConfig = {
+                Type = "oneshot";
+                ExecStart = "${pkgs.utillinux}/bin/fstrim -av";
+            };
         };
     };
 
@@ -223,7 +231,9 @@
       w /sys/devices/system/cpu/intel_pstate/min_perf_pct   - - - - 26
       w /sys/devices/system/cpu/intel_pstate/max_perf_pct   - - - - 100
 
-      w /sys/kernel/mm/transparent_hugepage/enabled         - - - - madvise
+      w /sys/kernel/mm/transparent_hugepage/enabled         - - - - always
+      #w /sys/kernel/mm/transparent_hugepage/enabled         - - - - madvise
+      #w /sys/kernel/mm/transparent_hugepage/enabled         - - - - never
       w /sys/kernel/mm/transparent_hugepage/defrag          - - - - always
       w /sys/kernel/mm/transparent_hugepage/khugepaged/scan_sleep_millisecs - - - - 5000
       w /sys/kernel/mm/transparent_hugepage/khugepaged/defrag   - - - - 1
