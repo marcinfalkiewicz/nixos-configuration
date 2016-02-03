@@ -91,9 +91,9 @@
             options vfio_pci            ids=1002:6818,1002:aab0
             options vfio_pci            disable_vga=1
 
-            options i915 fastboot=0
-            options i915 enable_rc6=7
-            options i915 semaphores=1
+            options i915                fastboot=0
+            options i915                enable_rc6=7
+            options i915                semaphores=1
 
             options radeon              gartsize=-1
             options radeon              audio=0
@@ -116,7 +116,7 @@
             options zfs                 zfs_arc_max=2147483648
             options zfs                 zfs_prefetch_disable=1
             options zfs                 zfs_txg_timeout=30
-            options zfs                 zfs_vdev_scheduler=bfq
+            options zfs                 zfs_vdev_scheduler=noop
 
             options zfs                 zfs_top_maxinflight=600
             options zfs                 zfs_scrub_delay=0
