@@ -32,37 +32,39 @@
             vdpauSupport = false;
         };
 
-        packageOverrides = pkgs: {
-            stdenv = pkgs.stdenv // {
-                platform = pkgs.stdenv.platform // {
-                    kernelPatches = [
-                    { patch = /etc/nixos/kernel/patches/0001-block-cgroups-kconfig-build-bits-for-BFQ-v7r8-4.1.patch;
-                      name = "01-block-bfq"; }
-                    { patch = /etc/nixos/kernel/patches/0002-block-introduce-the-BFQ-v7r8-I-O-sched-for-4.1.patch;
-                      name = "02-block-bfq"; }
-                    { patch = /etc/nixos/kernel/patches/0003-block-bfq-add-Early-Queue-Merge-EQM-to-BFQ-v7r8-for-4.1.0.patch;
-                      name = "03-block-bfq"; }
-                    { patch = /etc/nixos/kernel/patches/0004-enable_additional_cpu_optimizations.patch;
-                      name = "04-cpu-optimizations"; }
-                    #{ patch = /etc/nixos/kernel/patches/0005-Revert-x86-efi-Fix-multiple-GOP-device-support.patch;
-                    #  name = "05-revert-multiple-efi-gop-support"; }
-                    ];
-                };
-            };
-        };
+        packageOverrides = pkgs: rec {
+            linuxPackages_katamari = pkgs.recurseIntoAttrs (
+                pkgs.linuxPackagesFor (
+                    pkgs.buildLinux rec {
 
+                        version = "4.1.17";
+                        src = pkgs.fetchurl {
+                            url = "mirror://kernel/linux/kernel/v4.x/linux-4.1.17.tar.xz";
+                            sha256 = "084ij19vgm27ljrjabqqmlqn27p168nsm9grhr6rajid4n79h6ab";
+                        };
+
+                        configfile = /etc/nixos/kernel/config;
+                        kernelPatches = [
+                            { patch = "/etc/nixos/kernel/patches/0001-block-cgroups-kconfig-build-bits-for-BFQ-v7r8-4.1.patch";
+                              name = "01-block-bfq"; }
+                            { patch = "/etc/nixos/kernel/patches/0002-block-introduce-the-BFQ-v7r8-I-O-sched-for-4.1.patch";
+                              name = "02-block-bfq"; }
+                            { patch = "/etc/nixos/kernel/patches/0003-block-bfq-add-Early-Queue-Merge-EQM-to-BFQ-v7r8-for-4.1.0.patch";
+                              name = "03-block-bfq"; }
+                            { patch = "/etc/nixos/kernel/patches/0004-enable_additional_cpu_optimizations.patch";
+                              name = "04-cpu-optimizations"; }
+                            #{ patch = "/etc/nixos/kernel/patches/0005-Revert-x86-efi-Fix-multiple-GOP-device-support.patch";
+                            #  name = "05-revert-multiple-efi-gop-support"; }
+                        ];
+
+                        allowImportFromDerivation = true;
+                    }
+                ) linuxPackages_katamari);
+        };
     };
 
     #kernelPackages = pkgs.linuxPackages_4_1;
-    boot.kernelPackages = pkgs.linuxPackages_custom {
-        version = "4.1.16";
-        src = pkgs.fetchurl {
-            url = "mirror://kernel/linux/kernel/v4.x/linux-4.1.16.tar.xz";
-            sha256 = "0vmjksmga0fkga2fmq2c6pawjjl5b56v9bwn92g6p7pbrq6074l7";
-            #sha256 = "18sr0dl5ax6pcx6nqp9drb4l6a38g07vxihiqpbwb231jv68h8j7";   # linux 4.1.15
-        };
-        configfile = /etc/nixos/kernel/config;
-    };
+    boot.kernelPackages = pkgs.linuxPackages_katamari;
 
     environment.systemPackages = with pkgs; [
         pkgs.firefoxWrapper
@@ -137,6 +139,7 @@
         enable = true;
         layout = "pl";
         #xkbOptions = "eurosign:e";
+        xkbOptions = "shift:both_capslock, ctrl:nocaps, terminate:ctrl_alt_bksp";
 
         videoDriver = "intel";
         vaapiDrivers = [ pkgs.vaapiIntel ];
