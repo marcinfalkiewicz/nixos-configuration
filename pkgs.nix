@@ -36,7 +36,6 @@
             linuxPackages_katamari = pkgs.recurseIntoAttrs (
                 pkgs.linuxPackagesFor (
                     pkgs.buildLinux rec {
-
                         version = "4.1.17";
                         src = pkgs.fetchurl {
                             url = "mirror://kernel/linux/kernel/v4.x/linux-4.1.17.tar.xz";
@@ -53,84 +52,82 @@
                               name = "03-block-bfq"; }
                             { patch = "/etc/nixos/kernel/patches/0004-enable_additional_cpu_optimizations.patch";
                               name = "04-cpu-optimizations"; }
-                            #{ patch = "/etc/nixos/kernel/patches/0005-Revert-x86-efi-Fix-multiple-GOP-device-support.patch";
-                            #  name = "05-revert-multiple-efi-gop-support"; }
+                            { patch = "/etc/nixos/kernel/patches/0005-Revert-x86-efi-Fix-multiple-GOP-device-support.patch";
+                              name = "05-revert-multiple-efi-gop-support"; }
                         ];
 
                         allowImportFromDerivation = true;
-                    }
-                ) linuxPackages_katamari);
+                    }) linuxPackages_katamari);
         };
     };
 
-    #kernelPackages = pkgs.linuxPackages_4_1;
     boot.kernelPackages = pkgs.linuxPackages_katamari;
 
     environment.systemPackages = with pkgs; [
         pkgs.firefoxWrapper
-            thunderbird
+        thunderbird
 
-            ncmpcpp
+        ncmpcpp
 
-            mpv
-            spotify
-            pavucontrol
-            virtmanager
+        mpv
+        spotify
+        pavucontrol
+        virtmanager
 
-            ffmpeg
-            gst_ffmpeg
-            gst_plugins_base
-            gst_plugins_bad
-            gst_plugins_good
-            gst_plugins_ugly
+        ffmpeg
+        gst_ffmpeg
+        gst_plugins_base
+        gst_plugins_bad
+        gst_plugins_good
+        gst_plugins_ugly
 
-            openvpn
-            gnupg
-            x11vnc
+        openvpn
+        gnupg
+        x11vnc
 
-            gtk_engines
-            gtk-engine-murrine
+        gtk_engines
+        gtk-engine-murrine
 
-            lm_sensors
-            smartmontools
-            efibootmgr
-            gptfdisk
-            multipath_tools
-            thin-provisioning-tools
-            hdparm
-            iotop
-            iftop
-            htop
-            ntfs3g
-            nix-prefetch-scripts
+        lm_sensors
+        smartmontools
+        efibootmgr
+        gptfdisk
+        multipath_tools
+        thin-provisioning-tools
+        hdparm
+        iotop
+        iftop
+        htop
+        ntfs3g
+        nix-prefetch-scripts
 
-            pciutils
-            usbutils
+        pciutils
+        usbutils
 
-            curl
-            tmux
-            vim
-            git
-            qemu
-            OVMF
-            mosh
-            cryptsetup
-            samba
+        curl
+        tmux
+        vim
+        git
+        qemu
+        OVMF
+        mosh
+        cryptsetup
+        samba
 
-            zip
-            xz
-            lzop
+        zip
+        xz
+        lzop
 
-            python27
-            libxml2 # for xmllint
+        python27
+        libxml2 # for xmllint
 
-            haskellPackages.xmobar
+        haskellPackages.xmobar
 
-            xorg.xset
-            xorg.xrdb
-            xorg.xmodmap
-            xorg.xrandr
-            ];
+        xorg.xset
+        xorg.xrdb
+        xorg.xmodmap
+        xorg.xrandr
+    ];
 
     services.printing.enable = false;
 
@@ -187,10 +184,6 @@
             haskellPackages.xmonad-contrib
             haskellPackages.xmonad-extras
         ];
-
-    services.haveged = {
-        enable = true;
-    };
 
     hardware.opengl = {
         driSupport32Bit = true;

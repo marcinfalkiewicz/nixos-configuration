@@ -215,7 +215,7 @@
         timerConfig = {
             OnCalendar = "weekly";
             AccuracySec = "1h";
-            Unit = "fstrim.service";
+            Unit = "$fstrim.service";
             Persistent = true;
         };
         wantedBy = ["timers.target"];
