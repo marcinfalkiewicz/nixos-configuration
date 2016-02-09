@@ -32,27 +32,30 @@
             vdpauSupport = false;
         };
 
+        qemu.x86Only = true;
+
         packageOverrides = pkgs: rec {
             linuxPackages_katamari = pkgs.recurseIntoAttrs (
                 pkgs.linuxPackagesFor (
                     pkgs.buildLinux rec {
-                        version = "4.1.17";
+                        version = "4.4.1";
                         src = pkgs.fetchurl {
-                            url = "mirror://kernel/linux/kernel/v4.x/linux-4.1.17.tar.xz";
-                            sha256 = "084ij19vgm27ljrjabqqmlqn27p168nsm9grhr6rajid4n79h6ab";
+                            url = "mirror://kernel/linux/kernel/v4.x/linux-4.4.1.tar.xz";
+                            #sha256 = "084ij19vgm27ljrjabqqmlqn27p168nsm9grhr6rajid4n79h6ab"; # 4.1.17
+                            sha256 = "0mwaqvl7dkasidciah1al57a1djnsk46ha5mjy4psq2inj71klky"; # 4.4.1
                         };
 
-                        configfile = /etc/nixos/kernel/config;
+                        configfile = "/etc/nixos/kernel/config_4.4";
                         kernelPatches = [
-                            { patch = "/etc/nixos/kernel/patches/0001-block-cgroups-kconfig-build-bits-for-BFQ-v7r8-4.1.patch";
+                            { patch = "/etc/nixos/kernel/patches/4.4.x/0001-block-cgroups-kconfig-build-bits-for-BFQ-v7r11-4.4.0.patch";
                               name = "01-block-bfq"; }
-                            { patch = "/etc/nixos/kernel/patches/0002-block-introduce-the-BFQ-v7r8-I-O-sched-for-4.1.patch";
+                            { patch = "/etc/nixos/kernel/patches/4.4.x/0002-block-introduce-the-BFQ-v7r11-I-O-sched-for-4.4.0.patch";
                               name = "02-block-bfq"; }
-                            { patch = "/etc/nixos/kernel/patches/0003-block-bfq-add-Early-Queue-Merge-EQM-to-BFQ-v7r8-for-4.1.0.patch";
+                            { patch = "/etc/nixos/kernel/patches/4.4.x/0003-block-bfq-add-Early-Queue-Merge-EQM-to-BFQ-v7r11-for.patch";
                               name = "03-block-bfq"; }
-                            { patch = "/etc/nixos/kernel/patches/0004-enable_additional_cpu_optimizations.patch";
+                            { patch = "/etc/nixos/kernel/patches/4.4.x/0004-enable_additional_cpu_optimizations.patch";
                               name = "04-cpu-optimizations"; }
-                            { patch = "/etc/nixos/kernel/patches/0005-Revert-x86-efi-Fix-multiple-GOP-device-support.patch";
+                            { patch = "/etc/nixos/kernel/patches/4.4.x/0005-Revert-x86-efi-Fix-multiple-GOP-device-support.patch";
                               name = "05-revert-multiple-efi-gop-support"; }
                         ];
 
