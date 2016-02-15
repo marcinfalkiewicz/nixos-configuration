@@ -131,6 +131,8 @@
         initrd.availableKernelModules = [ "ehci_pci" "ahci" "usbhid" "usb_storage" "dm_thin_pool" ];
         initrd.supportedFilesystems = [ "zfs" "ext4" ];
         supportedFilesystems = [ "zfs" "ext4" ];
+
+        #zfs.devNodes = [ "/dev/disk/by-id" ];
         zfs.extraPools = [ "zstorage" ];
 
         blacklistedKernelModules = [
@@ -215,7 +217,7 @@
         timerConfig = {
             OnCalendar = "weekly";
             AccuracySec = "1h";
-            Unit = "$fstrim.service";
+            Unit = "fstrim.service";
             Persistent = true;
         };
         wantedBy = ["timers.target"];
@@ -248,10 +250,11 @@
         ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", RUN+="${pkgs.hdparm}/bin/hdparm -S 180 /dev/%k"
 
         # default schedulers
-        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="bfq"
-        #ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="deadline"
-        #ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/iosched/fifo_batch}="32"
-        #ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/iosched/writes_starved}="8"
+        #ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="bfq"
+        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="deadline"
+        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/iosched/fifo_batch}="8"
+        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/iosched/writes_starved}="4"
+        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/iosched/front_merges}="0"
         ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"
 
         # fancy swap-on-zram rule
@@ -300,9 +303,11 @@
     time.timeZone = "Europe/Warsaw";
 
     nix.extraOptions = ''
-        build-cores = 5
+        build-cores = 1
+        build-max-jobs = 4
+        build-use-chroot = true
 
-        binary-caches = https://cache.nixos.org/ https://hydra.nixos.org
+        #binary-caches = https://cache.nixos.org/
         binary-caches-parallel-connections = 4
 
         gc-keep-outputs = true
