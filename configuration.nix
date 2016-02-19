@@ -60,6 +60,7 @@
             ];
 
         kernelParams = [ #"video=efifb"
+            "clocksource=hpet"
             "iommu=pt"
             "intel_iommu=on,igfx_off"
             "i915.modeset=1"
@@ -272,24 +273,10 @@
 
     security.rtkit.enable = true;
     security.pam.loginLimits = [
-        {
-            domain = "@libvirtd";
-            type = "-";
-            item = "rtprio";
-            value = "99";
-        }
-        {
-            domain = "@libvirtd";
-            type = "-";
-            item = "nice";
-            value = "-20";
-        }
-        {
-            domain = "@libvirtd";
-            type = "-";
-            item = "memlock";
-            value = "unlimited";
-        }
+        { domain = "@audio"; type = "-"; item = "rtprio"; value = "99"; }
+        { domain = "@audio"; type = "-"; item = "memlock"; value = "131072"; }
+        { domain = "@libvirtd"; type = "-"; item = "rtprio"; value = "99"; }
+        { domain = "@libvirtd"; type = "-"; item = "nice"; value = "-20"; }
     ];
 
     system.stateVersion = "15.09";
