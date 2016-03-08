@@ -2,6 +2,17 @@
 
 { config, pkgs, ... }:
 
+let
+
+kver = "4.4.4";
+
+#khash = "084ij19vgm27ljrjabqqmlqn27p168nsm9grhr6rajid4n79h6ab"; # 4.1.17
+#khash = "0mwaqvl7dkasidciah1al57a1djnsk46ha5mjy4psq2inj71klky"; # 4.4.1
+#khash = "09l6y0nb8yv7l16arfwhy4i5h9pkxcbd7hlbw0015n7gm4i2mzc2"; # 4.4.2
+#khash = "1pcichd5hp3hzb3hwh5737jwqmfv4ylhw04sbby3hzmxkfqrqdqb"; # 4.4.3
+khash = "0b4190mwmxf329n16yl32my7dfi02pi7qf39a8v61sl9b2gxffad"; # 4.4.4
+
+in
 {
 
     environment.etc."sensors.conf" = {
@@ -9,10 +20,34 @@
         enable = true;
     };
 
-    environment.shellAliases = {
-        sensors = "${pkgs.lm_sensors}/bin/sensors -c /etc/sensors.conf";
-        clearcache = "sync && echo 3 | sudo tee /proc/sys/vm/drop_caches && sync";
-    };
+    environment.interactiveShellInit = ''
+        # A nix query helper function
+        nix-search()
+        {
+            case "$@" in
+                -h|--help|"")
+                    printf "nq: A tiny nix-env wrapper to search for packages in package name, attribute name and description fields\n";
+                    printf "\nUsage: nq <case insensitive regexp>\n";
+                    return
+                    ;;
+            esac
+            nix-env -qaP --description \* | grep -i "$@"
+        }
+
+        drop_caches()
+        {
+            sync
+            echo $1 | sudo tee /proc/sys/vm/drop_caches
+            sync
+        }
+
+        sensors()
+        {
+            ${pkgs.lm_sensors}/bin/sensors -c /etc/sensors.conf $@
+        }
+
+        export HISTCONTROL=ignoreboth   # ignorespace + ignoredups
+    '';
 
     nixpkgs.config = {
         allowUnfree = true;
@@ -32,18 +67,20 @@
             vdpauSupport = false;
         };
 
-        qemu.x86Only = true;
-
         packageOverrides = pkgs: rec {
+            qemu = pkgs.qemu.override {
+                x86Only = true;
+            };
+            libvirt = pkgs.libvirt.override {
+                xen = null;
+            };
             linuxPackages_katamari = pkgs.recurseIntoAttrs (
                 pkgs.linuxPackagesFor (
                     pkgs.buildLinux rec {
-                        version = "4.4.2";
+                        version = "${kver}";
                         src = pkgs.fetchurl {
-                            url = "mirror://kernel/linux/kernel/v4.x/linux-4.4.2.tar.xz";
-                            #sha256 = "084ij19vgm27ljrjabqqmlqn27p168nsm9grhr6rajid4n79h6ab"; # 4.1.17
-                            #sha256 = "0mwaqvl7dkasidciah1al57a1djnsk46ha5mjy4psq2inj71klky"; # 4.4.1
-                            sha256 = "09l6y0nb8yv7l16arfwhy4i5h9pkxcbd7hlbw0015n7gm4i2mzc2"; # 4.4.2
+                            url = "mirror://kernel/linux/kernel/v4.x/linux-${kver}.tar.xz";
+                            sha256 = "${khash}";
                         };
 
                         configfile = /etc/nixos/kernel/config_4.4;
@@ -58,10 +95,14 @@
                               name = "cpu-optimizations"; }
                             { patch = /etc/nixos/kernel/patches/4.4.x/0005-Revert-x86-efi-Fix-multiple-GOP-device-support.patch;
                               name = "revert-multiple-efi-gop-support"; }
+                            #{ patch = /etc/nixos/kernel/patches/4.4.x/grsecurity-3.1-4.4.4-201603032158.patch;
+                            #  name = "grsecurity"; }
                         ];
 
                         allowImportFromDerivation = true;
-                    }) linuxPackages_katamari);
+                    }) linuxPackages_katamari
+            );
+
         };
     };
 
@@ -76,7 +117,10 @@
         mpv
         spotify
         pavucontrol
+
         virtmanager
+        qemu
+        OVMF
 
         ffmpeg
         gst_ffmpeg
@@ -97,7 +141,7 @@
         efibootmgr
         gptfdisk
         multipath_tools
-        thin-provisioning-tools
+        thin_provisioning_tools
         hdparm
         iotop
         iftop
@@ -112,8 +156,6 @@
         tmux
         vim
         git
-        qemu
-        OVMF
         mosh
         cryptsetup
         samba
@@ -145,9 +187,9 @@
         videoDriver = "intel";
         vaapiDrivers = [ pkgs.vaapiIntel ];
         deviceSection = ''
-            BusID   "PCI:0:2:0"
+            BusID  "PCI:0:2:0"
             Option "TearFree" "true"
-            '';
+        '';
     };
 
     services.xserver.displayManager.lightdm.enable = true;
