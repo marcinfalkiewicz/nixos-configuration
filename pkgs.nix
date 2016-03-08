@@ -74,6 +74,9 @@ in
             libvirt = pkgs.libvirt.override {
                 xen = null;
             };
+            libvirt-glib = pkgs.libvirt-glib.override {
+                xen = null;
+            };
             linuxPackages_katamari = pkgs.recurseIntoAttrs (
                 pkgs.linuxPackagesFor (
                     pkgs.buildLinux rec {
