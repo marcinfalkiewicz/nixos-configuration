@@ -203,7 +203,7 @@
             wantedBy = ["multi-user.target"];
         };
 
-        # do fstrim every week, instead of discard-on-delete
+        # service for fstrim.timer
         fstrim = {
             description = "Discard unused blocks";
             path = [ pkgs.utillinux ];
@@ -212,17 +212,41 @@
                 ExecStart = "${pkgs.utillinux}/bin/fstrim -av";
             };
         };
+
+        # service for nix-collect-garbage.timer
+        nix-collect-garbage = {
+            description = "Remove NixOS generation older than 14 days";
+            path = [ pkgs.nix ];
+            serviceConfig = {
+                Type = "oneshot";
+                ExecStart = "${pkgs.nix}/bin/nix-collect-garbage --delete-older-than 14d";
+            };
+        };
     };
 
     systemd.timers = {
+        # do fstrim every week, instead of discard-on-delete
         fstrim = {
             description = "Discard unused blocks once a week";
             timerConfig = {
                 OnCalendar = "weekly";
-                AccuracySec = "1h";
+                AccuracySec = "6h";
                 Unit = "fstrim.service";
                 Persistent = true;
             };
+            wantedBy = ["timers.target"];
+        };
+
+        # auto-clean generations older than 7 days, every week
+        nix-collect-garbage = {
+            description = "Remove old NixOS generations";
+            timerConfig = {
+                OnCalendar = "weekly";
+                AccuracySec = "6h";
+                Unit = "nix-collect-garbage.service";
+                Persistent = true;
+            };
+            before = ["fstrim.timer"];
             wantedBy = ["timers.target"];
         };
     };
