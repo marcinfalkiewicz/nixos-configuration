@@ -15,6 +15,8 @@
             ./programs.nix
             ./services/misc.nix
             ./services/libvirt.nix
+            ./services/nginx.nix
+            ./services/munin.nix
             ./services/mopidy.nix
             ./services/smb.nix
             ./services/sshd.nix
@@ -133,7 +135,7 @@
         initrd.supportedFilesystems = [ "zfs" "ext4" ];
         supportedFilesystems = [ "zfs" "ext4" ];
 
-        #zfs.devNodes = [ "/dev/disk/by-id" ];
+        zfs.devNodes = "/dev/disk/by-id";
         zfs.extraPools = [ "zstorage" ];
 
         blacklistedKernelModules = [
@@ -145,25 +147,24 @@
 
     fileSystems = {
         "/" = {
-            options = "i_version,nodiscard,noatime,delalloc,journal_checksum,commit=30";
-            #options = "i_version,noatime,delalloc,journal_checksum,journal_async_commit,commit=30";
+            options = [ "i_version" "nodiscard" "noatime" "delalloc" "journal_checksum" "commit=30" ];
         };
         "/var/home" = {
-            options = "nodiscard,noatime";
+            options = [ "nodiscard" "noatime" ];
         #    options = "nodiscard,noatime,journal_async_commit";
         };
         "/boot" = {
-            options = "noatime,noauto,x-systemd.automount";
+            options = [ "noatime" "noauto" "x-systemd.automount" ];
         };
         "/proc" = {
             device = "proc";
             fsType = "proc";
-            options = "hidepid=2";
+            options = [ "hidepid=2" ];
         };
         "/sys/firmware/efi/efivars" = {
             device = "efivarfs";
             fsType = "efivarsfs";
-            options = "ro,nosuid,nodev,noexec,noatime";
+            options = [ "ro" "nosuid" "nodev" "noexec" "noatime" ];
         };
 
     };
@@ -213,15 +214,17 @@
         };
     };
 
-    systemd.timers.fstrim = {
-        description = "Discard unused blocks once a week";
-        timerConfig = {
-            OnCalendar = "weekly";
-            AccuracySec = "1h";
-            Unit = "fstrim.service";
-            Persistent = true;
+    systemd.timers = {
+        fstrim = {
+            description = "Discard unused blocks once a week";
+            timerConfig = {
+                OnCalendar = "weekly";
+                AccuracySec = "1h";
+                Unit = "fstrim.service";
+                Persistent = true;
+            };
+            wantedBy = ["timers.target"];
         };
-        wantedBy = ["timers.target"];
     };
 
     services.journald.extraConfig = ''
@@ -289,6 +292,7 @@
 
     time.timeZone = "Europe/Warsaw";
 
+    nix.nixPath = [ "nixpkgs=/etc/nixos/nixpkgs" "/nix/var/nix/profiles/per-user/root/channels/nixos" "nixos-config=/etc/nixos/configuration.nix" "/nix/var/nix/profiles/per-user/root/channels" ];
     nix.extraOptions = ''
         build-cores = 1
         build-max-jobs = 4
