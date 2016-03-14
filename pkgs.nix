@@ -4,13 +4,14 @@
 
 let
 
-kver = "4.4.4";
+kver = "4.4.5";
 
 #khash = "084ij19vgm27ljrjabqqmlqn27p168nsm9grhr6rajid4n79h6ab"; # 4.1.17
 #khash = "0mwaqvl7dkasidciah1al57a1djnsk46ha5mjy4psq2inj71klky"; # 4.4.1
 #khash = "09l6y0nb8yv7l16arfwhy4i5h9pkxcbd7hlbw0015n7gm4i2mzc2"; # 4.4.2
 #khash = "1pcichd5hp3hzb3hwh5737jwqmfv4ylhw04sbby3hzmxkfqrqdqb"; # 4.4.3
-khash = "0b4190mwmxf329n16yl32my7dfi02pi7qf39a8v61sl9b2gxffad"; # 4.4.4
+#khash = "0b4190mwmxf329n16yl32my7dfi02pi7qf39a8v61sl9b2gxffad"; # 4.4.4
+khash = "1daavrj2msl85aijh1izfm1cwf14c7mi75hldzidr1h2v629l89h"; # 4.4.5
 
 in
 {
