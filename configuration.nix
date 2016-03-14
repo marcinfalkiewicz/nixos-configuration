@@ -154,7 +154,7 @@
         #    options = "nodiscard,noatime,journal_async_commit";
         };
         "/boot" = {
-            options = [ "noatime" "noauto" "x-systemd.automount" ];
+            options = [ "noatime" ];
         };
         "/proc" = {
             device = "proc";
