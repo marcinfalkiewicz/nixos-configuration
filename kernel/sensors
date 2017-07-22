@@ -41,7 +41,8 @@ chip "nct6776-isa-0290"
     set in3_max  3.3 * 1.05
 
     label in4 "+5V"
-    compute in4 @ * 10, @ / 10
+    compute in4 @ * (1100/113), @ / (1100/113)
+    #compute in4 @ * 10, @ / 10
     set in4_min  5.0 * 0.95
     set in4_max  5.0 * 1.05
 

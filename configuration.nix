@@ -1,26 +1,22 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
-
+#
 { config, pkgs, ... }:
 
+let
+
+  hostname = "NODE";
+
+in
 {
     imports =
         [
         # Include the results of the hardware scan.
             ./hardware-configuration.nix
             ./luks.nix
+            ./networking.nix
             ./users.nix
             ./pkgs.nix
             ./programs.nix
-            ./services/misc.nix
-            ./services/libvirt.nix
-            ./services/nginx.nix
-            ./services/munin.nix
-            ./services/mopidy.nix
-            ./services/smb.nix
-            ./services/sshd.nix
-            ./networking/firewall.nix
+            ./services.nix
         ];
 
     boot = {
@@ -28,8 +24,9 @@
         vesa = false;
 
         loader = {
-            gummiboot.enable = true;
-            gummiboot.timeout = 1;
+            timeout = 2;
+
+            systemd-boot.enable = true;
             efi.canTouchEfiVariables = true;
         };
 
@@ -65,19 +62,21 @@
             "clocksource=hpet"
             "iommu=pt"
             "intel_iommu=on,igfx_off"
-            "i915.modeset=1"
-            "vfio_pci.ids=1002:6818,1002:aab0"
-            "vfio_pci.disable_vga=1"
+            #"i915.modeset=1"
+            #"vfio_pci.ids=1002:6818,1002:aab0"  # AMD HD7870
+            #"vfio_pci.ids=1002:67df,1002:aaf0"  # AMD RX480
+            #"vfio_pci.disable_vga=1"
             "libahci.ignore_sss=1"
             "zfs.zfs_arc_max=2147483648"
-            #"libata.force=1.00:noncq"             # NCQ on Samsung is broken (suprise!)
+            #"libata.force=1.00:noncq"             # NCQ on Samsung is broken (surprise!)
             "hugepagesz=1GB"
-            "hugepages=8"
+            #"hugepages=10"
             #"hugepagesz=2MB"
-            #"hugepages=1024"
+            #"hugepages=5632"
             "isolcpus=4,5,6,7"
             "nohz_full=4,5,6,7"
             "rcu_nocbs=4,5,6,7"
+            "scsi_mod.use_blk_mq=1"
         ];
 
         extraModprobeConfig = ''
@@ -85,21 +84,21 @@
             options zram                num_devices=4
 
             options kvm                 ignore_msrs=1
+            options kvm                 kvmclock_periodic_sync=1
             options kvm_intel           enable_apicv=1
             options kvm_intel           ept=1
+            options kvm_intel           fasteoi=1
             options kvm_intel           emulate_invalid_guest_state=0
             options vfio_iommu_type1    allow_unsafe_interrupts=0
 
             softdep radeon              pre: vfio-pci
-            options vfio_pci            ids=1002:6818,1002:aab0
+            #options vfio_pci            ids=1002:6818,1002:aab0
+            options vfio_pci            ids=1002:67df,1002:aaf0
             options vfio_pci            disable_vga=1
 
             options i915                fastboot=0
             options i915                enable_rc6=7
             options i915                semaphores=1
-
-            options radeon              gartsize=-1
-            options radeon              audio=0
 
             options processor           ignore_ppc=1
 
@@ -117,9 +116,14 @@
             options libahci             devslp_idle_timeout=300
 
             options zfs                 zfs_arc_max=2147483648
-            options zfs                 zfs_prefetch_disable=1
+            options zfs                 zfs_prefetch_disable=0
             options zfs                 zfs_txg_timeout=30
             options zfs                 zfs_vdev_scheduler=noop
+
+            options zfs                 zio_taskq_batch_pct=50
+
+            options spl                 spl_taskq_thread_dynamic=0
+            options spl                 spl_taskq_thread_sequential=8
 
             options zfs                 zfs_top_maxinflight=600
             options zfs                 zfs_scrub_delay=0
@@ -128,43 +132,86 @@
             options zfs                 zfs_scan_min_time_ms=5000
         '';
 
+        initrd = {
+            checkJournalingFS = true;
+            kernelModules = [ "fbcon" "loop" "vfio-pci" ];
+            availableKernelModules = [ 
+              "ehci_pci" "ahci" "usbhid" "usb_storage" 
+              "dm_mod" "dm_crypt" "md_mod" "raid10" 
+            ];
+            supportedFilesystems = [ "ext4" "xfs" ];
+            mdadmConf = "
+DEVICE partitions
+ARRAY /dev/md0 metadata=1.2 name=NODE:0 UUID=70c2f80c:4538004f:e9b15630:810e5f43
+            ";
+            #compressor = "xz -9 -e -T4";
 
-        initrd.checkJournalingFS = true;
-        initrd.kernelModules = [ "fbcon" "i915" "loop" "vfio-pci"];
-        initrd.availableKernelModules = [ "ehci_pci" "ahci" "usbhid" "usb_storage" "dm_thin_pool" ];
-        initrd.supportedFilesystems = [ "zfs" "ext4" ];
-        supportedFilesystems = [ "zfs" "ext4" ];
+            network = {
+              enable = true;
+              ssh = {
+                enable = true;
+                port = 2539;
+                hostRSAKey = /etc/nixos/initrd/host_rsa_key;
+                authorizedKeys = [
+                  "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDeys81joKNKQQK5vDYxU9ar4V8qiTOERK5Guti/iFc2taS0wUCeijWdGqd3CT1hfzI3wzv0DAuvrOIqo+VEHgR4ejgkWvdsiHCefYGpNE5sTq79Nbiwnzn5hMEAlRvgN7lgh1KvHaSmgdHoy9BfqH4HZdnugIZ40ON446atX0kUl2fNDyLccCVXdni6lFm76pkJZw92PHbKmRtvMmBd9BYsuzRkCTbUtQRETvaYjY02ffHCRYq8U7B16EV6+/tkMwRuw4S3lYavh/WOyXcTbHky0EeLUwDZsLpRAY2Liv456BmWmyaJCSIMsDGTZmiYdyKBDv4+/XYjEsFUkYDyzaTRTcUZALP+6eoEnJJElxY9tAAQKWEqYUhNKSVZYCY+0tWqRVCsnLgxhTnK7snQMmb2cKsxpiTjkOqEW1E36NN9CoR0BmucIq8au4mcS3NV3KtZRmaJk+WIP5/UcL839I/bgnuZdvUi8vLshDGg18QdHw1pXZed9p5pnj7TmpWrjDCgBDV+Q4m9jiwR5YdjBeA5cVMm+tg4Z2aJmlq+gyZOmo2QubcwtCbPSykI2LF/MdJGljhvKT5MBibIIfzXUZDAzLdPT8dRgAXRmNQiqvuAwrQGoiKaeFf5KJVS3H0RLx5C8Wd9tRW0oVPCA+ln3qVxDlAeIXpzSKPlsRDqfR2pw== marcin.falkiewicz"
+                ];
+              };
+            };
 
-        zfs.devNodes = "/dev/disk/by-id";
-        zfs.extraPools = [ "zstorage" ];
+        };
+
+	
+        supportedFilesystems = [ "ext4" "xfs" ]; # add zfs for zfs support
+
+        #zfs = {
+        #    devNodes = "/dev/disk/by-id";
+        #    extraPools = [ "zraid" ];
+        #    enableUnstable = true;
+        #};
 
         blacklistedKernelModules = [
-            "radeon" "pcspkr" "wl"
-                "b43" "b43legacy" "ssb" "bcm43xx"
-                "brcm80211" "brcmfmac" "brcmsmac" "bcma"
+            #"radeon" "amdgpu"
+            "pcspkr" "wl"
+            "b43" "b43legacy" "ssb" "bcm43xx"
+            "brcm80211" "brcmfmac" "brcmsmac" "bcma"
         ];
     };
 
     fileSystems = {
         "/" = {
-            options = [ "i_version" "nodiscard" "noatime" "delalloc" "journal_checksum" "commit=30" ];
-        };
-        "/var/home" = {
-            options = [ "nodiscard" "noatime" ];
-        #    options = "nodiscard,noatime,journal_async_commit";
+            options = [ "nodiscard" "noatime" "commit=120" ];
         };
         "/boot" = {
-            options = [ "noatime" ];
+            options = [ "discard" "noatime" ];
         };
-        "/proc" = {
-            device = "proc";
-            fsType = "proc";
-            options = [ "hidepid=2" ];
+        "/home" = {
+            device = "/dev/node/home";
+            fsType = "ext4";
+            options = [ "nodiscard" "noatime" ];
         };
         "/sys/firmware/efi/efivars" = {
-            device = "efivarfs";
+            device = "efivarsfs";
             fsType = "efivarsfs";
             options = [ "ro" "nosuid" "nodev" "noexec" "noatime" ];
+        };
+
+        # Windows 10 partitions
+        "/mnt/sda4" = {
+            device = "/dev/sda4";
+            fsType = "ntfs";
+            options = [ "ro" ];
+        };
+
+        "/mnt/sda5" = {
+            device = "/dev/sda5";
+            fsType = "ntfs";
+            options = [ "ro" ];
+        };
+
+	"/mnt/raid" = {
+          device = "/dev/mapper/RAID";
+            fsType = "xfs";
+            options = [ "noatime" "nodev" "noexec" "allocsize=64m" ];
         };
 
     };
@@ -180,14 +227,14 @@
             what  = "hugetlbfs";
             type  = "hugetlbfs";
             options = "pagesize=2M";
-            requiredBy  = ["basic.target"];
+            requiredBy  = [ "basic.target" ];
         }
         { where = "/dev/hugepages/hugepages-1048576kB";
             enable  = true;
             what  = "hugetlbfs";
             type  = "hugetlbfs";
             options = "pagesize=1G";
-            requiredBy  = ["basic.target"];
+            requiredBy  = [ "basic.target" ];
         }
     ];
 
@@ -217,6 +264,7 @@
         nix-collect-garbage = {
             description = "Remove NixOS generation older than 14 days";
             path = [ pkgs.nix ];
+            enable = false;
             serviceConfig = {
                 Type = "oneshot";
                 ExecStart = "${pkgs.nix}/bin/nix-collect-garbage --delete-older-than 14d";
@@ -234,20 +282,21 @@
                 Unit = "fstrim.service";
                 Persistent = true;
             };
-            wantedBy = ["timers.target"];
+            wantedBy = [ "timers.target" ];
         };
 
         # auto-clean generations older than 7 days, every week
         nix-collect-garbage = {
             description = "Remove old NixOS generations";
+            enable = false;
             timerConfig = {
                 OnCalendar = "weekly";
                 AccuracySec = "6h";
                 Unit = "nix-collect-garbage.service";
                 Persistent = true;
             };
-            before = ["fstrim.timer"];
-            wantedBy = ["timers.target"];
+            before = [ "fstrim.timer" ];
+            wantedBy = [ "timers.target" ];
         };
     };
 
@@ -261,29 +310,28 @@
       w /sys/devices/system/cpu/intel_pstate/min_perf_pct   - - - - 26
       w /sys/devices/system/cpu/intel_pstate/max_perf_pct   - - - - 100
 
-      w /sys/kernel/mm/transparent_hugepage/enabled         - - - - always
+      #w /sys/kernel/mm/transparent_hugepage/enabled         - - - - always
       #w /sys/kernel/mm/transparent_hugepage/enabled         - - - - madvise
-      #w /sys/kernel/mm/transparent_hugepage/enabled         - - - - never
+      w /sys/kernel/mm/transparent_hugepage/enabled         - - - - never
       w /sys/kernel/mm/transparent_hugepage/defrag          - - - - always
       w /sys/kernel/mm/transparent_hugepage/khugepaged/scan_sleep_millisecs - - - - 5000
       w /sys/kernel/mm/transparent_hugepage/khugepaged/defrag   - - - - 1
     '';
 
-    swapDevices = [ ];
-
     hardware.cpu.intel.updateMicrocode = true;
 
     services.udev.extraRules = ''
         # force disks stanby after 15 minutes
-        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", RUN+="${pkgs.hdparm}/bin/hdparm -S 180 /dev/%k"
+        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", RUN+="${pkgs.hdparm}/bin/hdparm -S0 -B255 /dev/%k"
 
         # default schedulers
         #ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="bfq"
         ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="deadline"
-        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/iosched/fifo_batch}="8"
-        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/iosched/writes_starved}="4"
-        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/iosched/front_merges}="0"
-        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"
+        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/iosched/fifo_batch}="24"
+        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/iosched/writes_starved}="8"
+        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="0", ATTR{queue/iosched/front_merges}="1"
+        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", ATTR{queue_depth}="1"
+        ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq" # because im using zfs
 
         # fancy swap-on-zram rule
         ACTION=="add", KERNEL=="zram[0-9]", ATTR{comp_algorithm}="lzo", ATTR{disksize}="256M"
@@ -291,12 +339,10 @@
         ACTION=="add", KERNEL=="zram[0-9]", RUN+="${pkgs.busybox}/bin/swapon -p1 /dev/%k"
 
         KERNEL=="zram[0-9]", SUBSYSTEM=="block", ENV{UDISKS_IGNORE}="1"
-    '';
 
-    networking.hostName = "KATAMARI";
-    networking.hostId = "6e003f24";
-    networking.wireless.enable = false;
-    networking.networkmanager.enable = true;
+        KERNEL=="sda[1367]", SUBSYSTEM=="block", ENV{UDISKS_IGNORE}="1"
+        KERNEL=="sd[bcde]2", SUBSYSTEM=="block", ENV{UDISKS_IGNORE}="1"
+    '';
 
     security.rtkit.enable = true;
     security.pam.loginLimits = [
@@ -305,8 +351,9 @@
         { domain = "@libvirtd"; type = "-"; item = "rtprio"; value = "99"; }
         { domain = "@libvirtd"; type = "-"; item = "nice"; value = "-20"; }
     ];
+    security.hideProcessInformation = true;
 
-    system.stateVersion = "15.09";
+    system.stateVersion = "17.09";
 
     i18n = { # Select internationalisation properties and timezone
         consoleFont = "lat2-16";
@@ -316,9 +363,9 @@
 
     time.timeZone = "Europe/Warsaw";
 
-    nix.nixPath = [ "nixpkgs=/etc/nixos/nixpkgs" "/nix/var/nix/profiles/per-user/root/channels/nixos" "nixos-config=/etc/nixos/configuration.nix" "/nix/var/nix/profiles/per-user/root/channels" ];
+    nix.nixPath = [ "/etc/nixos/nixpkgs" "nixpkgs=/etc/nixos/nixpkgs" "nixos-config=/etc/nixos/configuration.nix" ];
     nix.extraOptions = ''
-        build-cores = 1
+        build-cores = 4
         build-max-jobs = 4
         build-use-chroot = true
 
